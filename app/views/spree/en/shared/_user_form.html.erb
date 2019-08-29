@@ -27,7 +27,6 @@
 
   <% Globalize.with_locale (I18n.locale) do %>
     <% if (params[:controller] == "spree/checkout") && (params[:action] == "registration") %>
-
       <%= form_for Spree::User.new, :as => :spree_user, :url => spree.registration_path, html: {:novalidate => true, class: "needs-validation news_frm my-frm-rgi"} do |f| %>
         <div class="form-row" data-hook="signup_inside_form" id="password-credentials">
 
@@ -77,6 +76,12 @@
       <% end %>
 
     <% else%>
+      <% if @user.present? &&@user.errors.present? %>
+        <% email_error = @user.errors.messages[:email].present? ? 'Email address ' + @user.errors.messages[:email].first : "" %>
+        <% password_error = @user.errors.messages[:password].present? ?  'Password ' + @user.errors.messages[:password].first : "" %>
+
+        <% @user.errors.clear %>
+      <% end %>
       <div class="form-row" data-hook="signup_inside_form" id="password-credentials">
 
         <div class="col-md-12 col-lg-12 col-sm-12 mb-3 p-0">
@@ -91,7 +96,12 @@
 
         <div class="col-md-12 col-lg-12 col-sm-12 mb-3 p-0">
           <label for="validationCustom02"><%= user_email.try(:title) %></label>
-          <%= f.email_field :email, :class => 'form-control user_email', :placeholder => "",id: "validationCustom02" , required: true %>
+          <%= f.email_field :email, :class => 'form-control user_email custom-error-js', :placeholder => "",id: "validationCustom02" , required: true %>
+          <% if email_error.present? %>
+            <small class="help-block custom_errors" data-bv-validator="identical" data-bv-result="INVALID" style="">
+              <span class="red-color"><%= email_error %></span>
+            </small>
+          <% end %>
         </div>
 
         <div class="col-md-12 col-lg-12 col-sm-12 mb-3 p-0">
@@ -101,15 +111,20 @@
 
         <div class="col-md-12 col-lg-12 col-sm-12 mb-3 p-0">
           <label for="validationCustom02"><%= user_password.try(:title) %></label>
-          <%= f.password_field :password, :class => 'form-control', :placeholder => "", id: "validationCustom02", required: true %>
+          <%= f.password_field :password, :class => 'form-control custom-error-js', :placeholder => "", id: "validationCustom02", required: true %>
+          <% if password_error.present? %>
+            <small class="help-block custom_errors" data-bv-validator="identical" data-bv-result="INVALID" style="">
+              <span class="red-color"><%= password_error %></span>
+            </small>
+          <% end %>
         </div>
 
         <div class="col-md-12 col-sm-12 col-lg-12 slc-dv p-0">
           <div class="col-md-6 col-lg-6 col-sm-12 mb-3 p-0 dt-rgt">
-            <%= f.select :date_of_birth, options_for_select((1..31).to_a.map{|num| [num,num]}, f.object.date_of_birth.to_i),{:prompt => user_birth_date.try(:title)},{class: "form-control day_dropdown", id: "validationCustom02", required: true}%>
+            <%= f.select :date_of_birth, options_for_select((1..31).to_a.map{|num| [num,num]}, f.object.date_of_birth.to_i),{:prompt => user_birth_date.try(:title)},{class: "form-control day_dropdown", id: "validationCustom02"}%>
           </div>
           <div class="col-md-6 col-lg-6 col-sm-12 mb-3 p-0 dt-lft">
-            <%= f.select :month_of_birth, options_for_select(Date::MONTHNAMES.compact.map{|mon| [mon,mon.downcase]}, f.object.month_of_birth),{:prompt => user_birth_month.try(:title), },{class: "form-control dropdown_month", id: "validationCustom02", required: true}%>
+            <%= f.select :month_of_birth, options_for_select(Date::MONTHNAMES.compact.map{|mon| [mon,mon.downcase]}, f.object.month_of_birth),{:prompt => user_birth_month.try(:title), },{class: "form-control dropdown_month", id: "validationCustom02"}%>
           </div>
         </div>
 
@@ -129,9 +144,11 @@
   .glyphicon-ok {
     color: green;
   }
+  .help-block+small{
+    display: contents;
+  }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-validator/0.5.3/js/bootstrapValidator.js"></script>
 <script>
     $( document ).ready(function() {
 
@@ -158,8 +175,9 @@
                 },
                 'spree_user[password]': {
                     validators: {
-                        notEmpty: {
-                            message: 'Please enter your password'
+                        stringLength: {
+                            min: 6,
+                            message: 'Please enter your password (Must be having 6 characters)'
                         }
                     }
                 },
@@ -178,6 +196,9 @@
                         },
                         notEmpty: {
                             message: 'Please enter your confirm email address'
+                        },
+                        emailAddress: {
+                            message: ' '
                         }
                     }
                 }
@@ -211,6 +232,9 @@
         //         $('.btn-sub-frm').attr("disabled", false);
         //     }
         // })
+        $('.confirm_user_email').next().next().remove();
+        $('.confirm_user_email').next().next().remove();
+        $('[name="spree_user[password]"').next().next().remove();
     });
     let ans = ""
     $('.dropdown_month').on('change',function () {

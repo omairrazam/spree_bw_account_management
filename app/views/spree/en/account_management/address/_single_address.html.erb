@@ -22,27 +22,33 @@
   <div class=" <%=  (from_view.present? && from_view == "address-checkout") ? "" : "col-lg-6 col-md-6 col-sm-6 prime-set prime-1" %>">
     <div class="street-box">
 
-      <% if !@is_primary   %>
+      <% if !@is_primary && form_obj.persisted?  %>
         <div class="prime-tp-btn">
          <ul>
-         <li><%= @is_primary ? primary_address.try(:title) : (form_obj.persisted? ? existing_address.try(:title) : new_address.try(:title)) %></li>
-
-          <% if form_obj.persisted? %>
-           <li>
-              <label class="switch"><input type="checkbox" , class="make-primary-checkbox", id="address_<%= form_obj.id %>"><span class="slider round"></span></label>
-              <%= link_to "#", make_address_primary_path(id:form_obj.id), style: "display: none;", id: "make_me_primary_address_#{form_obj.id}", :remote => true %>
-            </li>
-          <% end %>
+         <li><%= @is_primary ? primary_address.try(:title) : (form_obj.persisted? ? existing_address.try(:title) : "" ) %></li>
+          <li>
+            <label class="switch"><input type="checkbox" , class="make-primary-checkbox", id="address_<%= form_obj.id %>"><span class="slider round"></span></label>
+            <%= link_to "#", make_address_primary_path(id:form_obj.id), style: "display: none;", id: "make_me_primary_address_#{form_obj.id}", :remote => true %>
+          </li>
          </ul>
        </div>
       <% end %>
+      
+      <% if form_obj.new_record? %>
+        <div class="prime-tp-btn text-center toni">
+          <h3><%=new_address.try(:title)%></h3>
+        </div>
+      <% end %>
 
+      
 
       <% if form_obj.persisted? && @is_primary %>
         <div class="prime-tp-btn">
          <button class="pp_x1">Primary Address</button>
         </div>
       <% end %>
+
+
 
 
 
@@ -60,7 +66,7 @@
 
         <% else %>
 
-          <div class="elit-dd text-center manag-input">
+          <div class="elit-dd text-center manag-input mng-st-mat nv-dit">
             <%#= link_to delete_address_btn.try(:title) ,address_path(form.object), 'data-method' => :delete, :class => "ress-btn-delet",:data => {:confirm => 'Are you sure?'},:remote => true%>
               <button type="button" class="ress-btn-delete" data-toggle="modal" data-target="#Delete_confirm_modal_<%=form_obj.persisted? ? form_obj.id : 'new'%>">DELETE</button>
              <%#= form.submit form.object.persisted? ? update_address_btn.try(:title) : save_address_btn.try(:title)  , :class => 'ress-btn-save'%>
